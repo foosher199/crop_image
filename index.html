@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="pageTitle">批量裁剪图片工具</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Font Awesome图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 语言选择器 -->
+    <div class="language-selector-container">
+        <label for="language-selector" data-i18n="language">语言</label>
+        <select id="language-selector">
+            <option value="zh" data-i18n="chinese">中文</option>
+            <option value="en" data-i18n="english">English</option>
+        </select>
+    </div>
+
+    <main class="container main-content">
+        <!-- 应用标题 -->
+        <h1 id="app-title" class="app-title" data-i18n="appTitle">批量裁剪图片工具</h1>
+        
+        <section id="upload-section" class="card">
+            <h2><i class="fas fa-upload"></i> <span data-i18n="uploadTitle">上传图片</span></h2>
+            <div id="upload-area" class="drop-area">
+                <p data-i18n="dropHere">拖放图片到这里或</p>
+                <label for="file-input" class="button primary" data-i18n="chooseImages">选择图片</label>
+                <input type="file" id="file-input" multiple accept="image/*" style="display: none;">
+                <p class="small" data-i18n="supportedFormats">支持JPG, PNG, GIF, WebP等格式</p>
+            </div>
+            <div id="upload-progress" class="progress-bar" style="display: none;">
+                <div class="progress-fill"></div>
+                <span class="progress-text">0%</span>
+            </div>
+        </section>
+
+        <section id="preview-section" class="card" style="display: none;">
+            <h2><i class="fas fa-images"></i> <span data-i18n="previewTitle">图片预览</span> <span class="scroll-hint"><i class="fas fa-arrow-down"></i> <span data-i18n="scrollMore">滚动查看更多</span></span></h2>
+            <div class="tools">
+                <div class="tool-group">
+                    <!-- 移除显示方式选择器 -->
+                </div>
+            </div>
+            <div id="images-container" class="grid-view"></div>
+        </section>
+
+        <section id="crop-section" class="card" style="display: none;">
+            <h2><i class="fas fa-crop"></i> <span data-i18n="cropTitle">裁剪设置</span></h2>
+            
+            <!-- 当前图片预览区域（现在放在上方） -->
+            <div id="current-image-container">
+                <h3 data-i18n="currentImagePreview">当前图片预览</h3>
+                <div id="current-image-editor">
+                    <div id="image-wrapper">
+                        <img id="current-image" src="" alt="当前图片">
+                        <div id="crop-overlay"></div>
+                    </div>
+                    <div class="image-tools">
+                        <button id="rotate-left" class="button tool" title="向左旋转90°" data-i18n="rotateLeftTooltip">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                        <button id="rotate-right" class="button tool" title="向右旋转90°" data-i18n="rotateRightTooltip">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 裁剪选项区域（现在放在下方） -->
+            <div class="crop-options">
+                <!-- 裁剪方式选择区域 -->
+                <div class="crop-settings-area">
+                    <div class="option-group">
+                        <label data-i18n="cropMethod">裁剪方式：</label>
+                        <div class="radio-group">
+                            <input type="radio" id="crop-custom" name="crop-type" value="custom" checked>
+                            <label for="crop-custom" data-i18n="custom">自定义</label>
+                            
+                            <input type="radio" id="crop-ratio" name="crop-type" value="ratio">
+                            <label for="crop-ratio" data-i18n="fixedRatio">固定比例</label>
+                            
+                            <input type="radio" id="crop-size" name="crop-type" value="size">
+                            <label for="crop-size" data-i18n="fixedSize">固定尺寸</label>
+                        </div>
+                    </div>
+
+                    <!-- 裁剪方式对应的功能区域 -->
+                    <div id="ratio-options" class="option-group" style="display: none;">
+                        <label for="aspect-ratio" data-i18n="selectRatio">选择比例：</label>
+                        <select id="aspect-ratio">
+                            <option value="1:1" data-i18n="square">1:1 (正方形)</option>
+                            <option value="4:3">4:3</option>
+                            <option value="16:9">16:9</option>
+                            <option value="3:2">3:2</option>
+                            <option value="2:3">2:3</option>
+                        </select>
+                    </div>
+
+                    <div id="size-options" class="option-group" style="display: none;">
+                        <label data-i18n="size">尺寸 (像素)：</label>
+                        <div class="input-group">
+                            <input type="number" id="width-input" placeholder="宽度" data-i18n="width" min="1">
+                            <span>×</span>
+                            <input type="number" id="height-input" placeholder="高度" data-i18n="height" min="1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 应用按钮区域，位置固定 -->
+                <div class="crop-actions-area">
+                    <div class="option-group">
+                        <label data-i18n="applyOperations">应用操作：</label>
+                        <div class="button-group">
+                            <button id="apply-to-all" class="button primary">
+                                <i class="fas fa-magic"></i> <span data-i18n="applyToAll">应用到所有图片</span>
+                            </button>
+                            <button id="reset-crops" class="button primary">
+                                <i class="fas fa-undo"></i> <span data-i18n="resetCrops">重置所有裁剪</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="download-section" class="card" style="display: none;">
+            <h2><i class="fas fa-download"></i> <span data-i18n="downloadTitle">下载处理后的图片</span></h2>
+            <div class="download-options">
+                <div class="option-group">
+                    <label for="output-format" data-i18n="outputFormat">输出格式：</label>
+                    <select id="output-format">
+                        <option value="jpeg">JPG</option>
+                        <option value="png" selected>PNG</option>
+                        <option value="webp">WebP</option>
+                    </select>
+                </div>
+                
+                <div id="quality-option" class="option-group">
+                    <label for="output-quality" data-i18n="imageQuality">图片质量：</label>
+                    <input type="range" id="output-quality" min="0" max="100" value="100">
+                    <span id="quality-value">100%</span>
+                </div>
+
+                <div class="option-group buttons-container">
+                    <label data-i18n="processImages">处理图片：</label>
+                    <div class="process-buttons">
+                        <button id="process-all" class="button primary">
+                            <i class="fas fa-cogs"></i> <span data-i18n="processAll">处理所有图片</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="option-group buttons-container">
+                    <label data-i18n="downloadImages">下载图片：</label>
+                    <div class="download-buttons">
+                        <button id="download-zip" class="button primary" style="display: none;">
+                            <i class="fas fa-file-archive"></i> <span data-i18n="downloadZip">下载所有图片(ZIP)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 处理进度条 -->
+            <div id="processing-progress" class="progress-bar" style="display: none;">
+                <div class="progress-fill"></div>
+                <span class="progress-text">0%</span>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast提示容器 -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- 引入第三方库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <!-- 引入自定义JS，使用type="module"支持ES模块 -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html> 
